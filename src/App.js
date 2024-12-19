@@ -13,13 +13,24 @@ import {
   Grid,
 } from "@mui/material";
 import { styled } from "@mui/system";
-import { 
-  LineChart, Line, XAxis, YAxis, Tooltip, Legend, CartesianGrid, ResponsiveContainer 
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Legend,
+  CartesianGrid,
+  ResponsiveContainer,
 } from "recharts";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
 import SentimentSatisfiedAltIcon from "@mui/icons-material/SentimentSatisfiedAlt";
 import InsightsIcon from "@mui/icons-material/Insights";
+import NotificationsIcon from "@mui/icons-material/Notifications";
+import SettingsIcon from "@mui/icons-material/Settings";
+import GoogleIcon from "@mui/icons-material/Google";
+import FacebookIcon from "@mui/icons-material/Facebook";
 
 const socket = io("http://localhost:5000");
 
@@ -121,31 +132,17 @@ function App() {
           >
             <Tab icon={<ChatBubbleOutlineIcon />} label="Chat" />
             <Tab icon={<DashboardIcon />} label="Dashboard" />
+            <Tab icon={<NotificationsIcon />} label="Notifications" />
+            <Tab icon={<SettingsIcon />} label="Settings" />
           </Tabs>
         </Box>
 
         {dashboardTab === 0 && (
-          <Container
-            maxWidth="sm"
-            style={{
-              marginTop: "2rem",
-              display: "flex",
-              flexDirection: "column",
-              height: "80vh",
-            }}
-          >
+          <Container maxWidth="sm" style={{ marginTop: "2rem", display: "flex", flexDirection: "column", height: "80vh" }}>
             <Typography variant="h4" component="h1" align="center" gutterBottom>
               <ChatBubbleOutlineIcon /> Chat Room
             </Typography>
-            <Paper
-              elevation={3}
-              style={{
-                padding: "1rem",
-                flex: 1,
-                overflowY: "auto",
-                marginBottom: "10px",
-              }}
-            >
+            <Paper elevation={3} style={{ padding: "1rem", flex: 1, overflowY: "auto", marginBottom: "10px" }}>
               <Box>
                 {messages.map((msg, index) => (
                   <Typography key={index} variant="body2">
@@ -155,15 +152,7 @@ function App() {
                 <div ref={messageEndRef} />
               </Box>
             </Paper>
-            <Box
-              sx={{
-                display: "flex",
-                gap: 2,
-                alignItems: "center",
-                borderTop: "1px solid #ccc",
-                paddingTop: "10px",
-              }}
-            >
+            <Box sx={{ display: "flex", gap: 2, alignItems: "center", borderTop: "1px solid #ccc", paddingTop: "10px" }}>
               <TextField
                 variant="outlined"
                 fullWidth
@@ -171,12 +160,7 @@ function App() {
                 onChange={(e) => setMessage(e.target.value)}
                 placeholder="Type a message..."
               />
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={sendMessage}
-                sx={{ height: "fit-content" }}
-              >
+              <Button variant="contained" color="primary" onClick={sendMessage} sx={{ height: "fit-content" }}>
                 Send
               </Button>
             </Box>
@@ -195,18 +179,37 @@ function App() {
                 <YAxis />
                 <Tooltip />
                 <Legend />
-                <Line
-                  type="monotone"
-                  dataKey="sentiment"
-                  stroke="#8884d8"
-                  name="Sentiment Score"
-                />
+                <Line type="monotone" dataKey="sentiment" stroke="#8884d8" name="Sentiment Score" />
               </LineChart>
             </ResponsiveContainer>
             <Typography variant="body1" sx={{ marginTop: 2 }}>
               <SentimentSatisfiedAltIcon sx={{ marginRight: 1 }} />
               Sentiment trends help visualize user moods and engagement over time.
             </Typography>
+          </DashboardTab>
+        )}
+
+        {dashboardTab === 2 && (
+          <DashboardTab>
+            <Typography variant="h5" gutterBottom>
+              <NotificationsIcon /> Notifications
+            </Typography>
+            <Box>
+              <Typography variant="body1">
+                No new notifications at the moment. Stay tuned!
+              </Typography>
+            </Box>
+          </DashboardTab>
+        )}
+
+        {dashboardTab === 3 && (
+          <DashboardTab>
+            <Typography variant="h5" gutterBottom>
+              <SettingsIcon /> Settings
+            </Typography>
+            <Box>
+              <Typography variant="body1">Settings are under construction. Check back soon!</Typography>
+            </Box>
           </DashboardTab>
         )}
       </Container>
@@ -216,7 +219,7 @@ function App() {
   return (
     <Container maxWidth="sm" style={{ marginTop: "2rem" }}>
       <Typography variant="h4" component="h1" align="center" gutterBottom>
-        Welcome to the Chat App
+        Swiftchats
       </Typography>
       <Box>
         <Tabs
@@ -231,34 +234,41 @@ function App() {
         </Tabs>
         <Grid container spacing={2} sx={{ marginTop: 3 }}>
           <Grid item xs={12}>
-            <TextField
-              label="Username"
-              variant="filled"
-              fullWidth
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-            />
+            <TextField label="Username" variant="filled" fullWidth value={username} onChange={(e) => setUsername(e.target.value)} />
           </Grid>
           <Grid item xs={12}>
-            <TextField
-              label="Password"
-              variant="filled"
-              type="password"
-              fullWidth
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
+            <TextField label="Password" variant="filled" type="password" fullWidth value={password} onChange={(e) => setPassword(e.target.value)} />
           </Grid>
         </Grid>
         <Box sx={{ marginTop: 3 }}>
           {tabValue === 0 ? (
-            <Button variant="contained" fullWidth onClick={handleLogin}>
-              Login
-            </Button>
+            <>
+              <Button variant="contained" fullWidth onClick={handleLogin}>
+                Login
+              </Button>
+              <Box sx={{ display: "flex", justifyContent: "center", marginTop: "1rem", gap: "1rem" }}>
+                <Button variant="outlined" color="primary" startIcon={<GoogleIcon />}>
+                  Login with Google
+                </Button>
+                <Button variant="outlined" color="primary" startIcon={<FacebookIcon />}>
+                  Login with Facebook
+                </Button>
+              </Box>
+            </>
           ) : (
-            <Button variant="contained" fullWidth onClick={handleSignUp}>
-              Sign Up
-            </Button>
+            <>
+              <Button variant="contained" fullWidth onClick={handleSignUp}>
+                Sign Up
+              </Button>
+              <Box sx={{ display: "flex", justifyContent: "center", marginTop: "1rem", gap: "1rem" }}>
+                <Button variant="outlined" color="primary" startIcon={<GoogleIcon />}>
+                  Sign Up with Google
+                </Button>
+                <Button variant="outlined" color="primary" startIcon={<FacebookIcon />}>
+                  Sign Up with Facebook
+                </Button>
+              </Box>
+            </>
           )}
         </Box>
       </Box>
