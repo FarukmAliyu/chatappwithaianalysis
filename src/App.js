@@ -49,9 +49,26 @@ function App() {
   const [tabValue, setTabValue] = useState(0);
   const [dashboardTab, setDashboardTab] = useState(0);
   const [analytics, setAnalytics] = useState([]);
+  const [miniGame, setMiniGame] = useState(false);
+  const [gameWord, setGameWord] = useState("");
+  const [gameHint, setGameHint] = useState("");
+  const [leaderboard, setLeaderboard] = useState([]);
   const messageEndRef = useRef(null);
 
   const { transcript, resetTranscript } = useSpeechRecognition();
+
+  const synth = window.speechSynthesis; // Speech Synthesis API
+
+  const speakMessage = (text) => {
+    if (!synth) {
+      console.error("SpeechSynthesis is not supported in this browser.");
+      return;
+    }
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.pitch = 1;
+    utterance.rate = 1;
+    synth.speak(utterance);
+  };
 
   const analyzeSentiment = (text) => {
     const positiveWords = ["great", "good", "love", "amazing", "excellent"];
@@ -74,12 +91,43 @@ function App() {
     setAnalytics(updatedAnalytics);
   };
 
+  const words = [
+    { word: "cat", hint: "It's a common household pet" },
+    { word: "river", hint: "A flowing body of water" },
+    { word: "sun", hint: "Shines bright during the day" },
+  ];
+
+  const startGame = () => {
+    const randomWord = words[Math.floor(Math.random() * words.length)];
+    setGameWord(randomWord.word.toLowerCase());
+    setGameHint(randomWord.hint);
+    setMiniGame(true);
+    sendChatMessage(`Bot: Let's play a game! Guess the word: ${randomWord.hint}`);
+  };
+
+  const checkGuess = (guess) => {
+    if (guess.toLowerCase() === gameWord) {
+      sendChatMessage(`Bot: Correct! 🎉 The word was: ${gameWord}`);
+      setLeaderboard((prev) => [...prev, { user: username || "You", score: 1 }]);
+      setMiniGame(false);
+    } else {
+      sendChatMessage(`Bot: Not quite! Try again. Hint: ${gameHint}`);
+    }
+  };
+
+  const sendChatMessage = (msg) => {
+    socket.emit("chat message", msg);
+    setMessages((prevMessages) => [...prevMessages, msg]);
+  };
+
   const sendMessage = () => {
     if (message.trim()) {
-      const msg = `${username}: ${message}`;
-      socket.emit("chat message", msg);
-      setMessages((prevMessages) => [...prevMessages, msg]);
-      updateAnalytics(message);
+      if (miniGame) {
+        checkGuess(message);
+      } else {
+        sendChatMessage(`${username}: ${message}`);
+        updateAnalytics(message);
+      }
       setMessage("");
       resetTranscript();
     }
@@ -89,6 +137,11 @@ function App() {
     socket.on("chat message", (msg) => {
       setMessages((prevMessages) => [...prevMessages, msg]);
       updateAnalytics(msg);
+
+      // Trigger voiceover for chatbot messages
+      if (msg.startsWith("Bot: ")) {
+        speakMessage(msg.replace("Bot: ", ""));
+      }
     });
 
     return () => {
@@ -138,31 +191,34 @@ function App() {
         </Box>
 
         {dashboardTab === 0 && (
-          <Container maxWidth="sm" style={{ marginTop: "2rem", display: "flex", flexDirection: "column", height: "80vh" }}>
+          <Container maxWidth="sm" style={{ marginTop: "2rem", height: "80vh" }}>
             <Typography variant="h4" component="h1" align="center" gutterBottom>
               <ChatBubbleOutlineIcon /> Chat Room
             </Typography>
-            <Paper elevation={3} style={{ padding: "1rem", flex: 1, overflowY: "auto", marginBottom: "10px" }}>
+            <Paper elevation={3} style={{ padding: "1rem", flex: 1, overflowY: "auto" }}>
               <Box>
                 {messages.map((msg, index) => (
-                  <Typography key={index} variant="body2">
-                    {msg}
-                  </Typography>
+                  <Typography key={index} variant="body2">{msg}</Typography>
                 ))}
                 <div ref={messageEndRef} />
               </Box>
             </Paper>
-            <Box sx={{ display: "flex", gap: 2, alignItems: "center", borderTop: "1px solid #ccc", paddingTop: "10px" }}>
+            <Box sx={{ display: "flex", gap: 2, alignItems: "center", paddingTop: "10px" }}>
               <TextField
                 variant="outlined"
                 fullWidth
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-                placeholder="Type a message..."
+                placeholder={miniGame ? "Your guess..." : "Type a message..."}
               />
-              <Button variant="contained" color="primary" onClick={sendMessage} sx={{ height: "fit-content" }}>
-                Send
+              <Button variant="contained" color="primary" onClick={sendMessage}>
+                {miniGame ? "Guess" : "Send"}
               </Button>
+              {!miniGame && (
+                <Button variant="contained" color="secondary" onClick={startGame}>
+                  Start Game
+                </Button>
+              )}
             </Box>
           </Container>
         )}
@@ -179,10 +235,10 @@ function App() {
                 <YAxis />
                 <Tooltip />
                 <Legend />
-                <Line type="monotone" dataKey="sentiment" stroke="#8884d8" name="Sentiment Score" />
+                <Line type="monotone" dataKey="sentiment" stroke="#8884d8" />
               </LineChart>
             </ResponsiveContainer>
-            <Typography variant="body1" sx={{ marginTop: 2 }}>
+            <Typography variant="body1">
               <SentimentSatisfiedAltIcon sx={{ marginRight: 1 }} />
               Sentiment trends help visualize user moods and engagement over time.
             </Typography>
@@ -234,42 +290,56 @@ function App() {
         </Tabs>
         <Grid container spacing={2} sx={{ marginTop: 3 }}>
           <Grid item xs={12}>
-            <TextField label="Username" variant="filled" fullWidth value={username} onChange={(e) => setUsername(e.target.value)} />
+            <TextField
+              label="Username"
+              variant="filled"
+              fullWidth
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+            />
           </Grid>
           <Grid item xs={12}>
-            <TextField label="Password" variant="filled" type="password" fullWidth value={password} onChange={(e) => setPassword(e.target.value)} />
+            <TextField
+              label="Password"
+              variant="filled"
+              fullWidth
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
           </Grid>
         </Grid>
+        {tabValue === 0 && (
+          <Button variant="contained" fullWidth onClick={handleLogin} sx={{ marginTop: 2 }}>
+            Log in
+          </Button>
+        )}
+        {tabValue === 1 && (
+          <Button variant="contained" fullWidth onClick={handleSignUp} sx={{ marginTop: 2 }}>
+            Sign Up
+          </Button>
+        )}
         <Box sx={{ marginTop: 3 }}>
-          {tabValue === 0 ? (
-            <>
-              <Button variant="contained" fullWidth onClick={handleLogin}>
-                Login
-              </Button>
-              <Box sx={{ display: "flex", justifyContent: "center", marginTop: "1rem", gap: "1rem" }}>
-                <Button variant="outlined" color="primary" startIcon={<GoogleIcon />}>
-                  Login with Google
-                </Button>
-                <Button variant="outlined" color="primary" startIcon={<FacebookIcon />}>
-                  Login with Facebook
-                </Button>
-              </Box>
-            </>
-          ) : (
-            <>
-              <Button variant="contained" fullWidth onClick={handleSignUp}>
-                Sign Up
-              </Button>
-              <Box sx={{ display: "flex", justifyContent: "center", marginTop: "1rem", gap: "1rem" }}>
-                <Button variant="outlined" color="primary" startIcon={<GoogleIcon />}>
-                  Sign Up with Google
-                </Button>
-                <Button variant="outlined" color="primary" startIcon={<FacebookIcon />}>
-                  Sign Up with Facebook
-                </Button>
-              </Box>
-            </>
-          )}
+          <Typography variant="subtitle2" gutterBottom>
+            Or log in with
+          </Typography>
+          <Box sx={{ display: "flex", gap: 2, justifyContent: "center" }}>
+            <Button
+              variant="contained"
+              startIcon={<GoogleIcon />}
+              color="error"
+              sx={{ flex: 1 }}
+            >
+              Google
+            </Button>
+            <Button
+              variant="contained"
+              startIcon={<FacebookIcon />}
+              sx={{ flex: 1 }}
+            >
+              Facebook
+            </Button>
+          </Box>
         </Box>
       </Box>
     </Container>
@@ -277,3 +347,4 @@ function App() {
 }
 
 export default App;
+
