@@ -1,3 +1,13 @@
+import VoiceChat from './components/VoiceChat';
+
+function App() {
+  return (
+    <div className="App">
+      {/* other components */}
+      <VoiceChat />
+    </div>
+  );
+}
 import React, { useState, useEffect, useRef } from "react";
 import SpeechRecognition, { useSpeechRecognition } from "react-speech-recognition";
 import { io } from "socket.io-client";
