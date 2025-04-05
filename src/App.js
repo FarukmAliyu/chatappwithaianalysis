@@ -193,7 +193,7 @@ function App() {
         {dashboardTab === 0 && (
           <Container maxWidth="sm" style={{ marginTop: "2rem", height: "80vh" }}>
             <Typography variant="h4" component="h1" align="center" gutterBottom>
-              <ChatBubbleOutlineIcon /> Chat Room
+              <ChatBubbleOutlineIcon /> 
             </Typography>
             <Paper elevation={3} style={{ padding: "1rem", flex: 1, overflowY: "auto" }}>
               <Box>
