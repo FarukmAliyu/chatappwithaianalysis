@@ -182,23 +182,129 @@ function App() {
     }
   };
 
-  if (isLoggedIn) {
-    return (
-      <Container maxWidth="lg" style={{ marginTop: "2rem" }}>
-        <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
-          <Tabs
-            value={dashboardTab}
-            onChange={(e, newTab) => setDashboardTab(newTab)}
-            centered
-            textColor="secondary"
-            indicatorColor="secondary"
+  if (!isLoggedIn) {
+  return (
+    <Box
+      sx={{
+        minHeight: "100vh",
+        background: "linear-gradient(135deg, #8e44ad, #3498db)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        animation: "gradientAnimation 10s ease infinite",
+        backgroundSize: "400% 400%",
+      }}
+    >
+      <style>
+        {`
+          @keyframes gradientAnimation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+          }
+        `}
+      </style>
+
+      <Paper
+        elevation={6}
+        sx={{
+          p: 5,
+          maxWidth: 420,
+          width: "90%",
+          borderRadius: 4,
+          backdropFilter: "blur(10px)",
+          backgroundColor: "rgba(255, 255, 255, 0.1)",
+          color: "#fff",
+          boxShadow: "0 8px 32px rgba(31, 38, 135, 0.37)",
+        }}
+      >
+        <Typography
+          variant="h4"
+          align="center"
+          gutterBottom
+          sx={{
+            fontWeight: "bold",
+            background: "linear-gradient(to right, #ff512f, #dd2476)",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+            animation: "fadeIn 2s ease",
+          }}
+        >
+          SwiftChats
+        </Typography>
+
+        <Tabs
+          value={tabValue}
+          onChange={(e, newValue) => setTabValue(newValue)}
+          centered
+          textColor="secondary"
+          indicatorColor="secondary"
+          sx={{ mb: 3 }}
+        >
+          <Tab label="Login" sx={{ color: "white" }} />
+          <Tab label="Sign Up" sx={{ color: "white" }} />
+        </Tabs>
+
+        <TextField
+          label="Username"
+          variant="filled"
+          fullWidth
+          InputProps={{ style: { color: "white" } }}
+          InputLabelProps={{ style: { color: "#bbb" } }}
+          sx={{ mb: 2 }}
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+        />
+
+        <TextField
+          label="Password"
+          type="password"
+          variant="filled"
+          fullWidth
+          InputProps={{ style: { color: "white" } }}
+          InputLabelProps={{ style: { color: "#bbb" } }}
+          sx={{ mb: 2 }}
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+
+        {tabValue === 0 ? (
+          <Button variant="contained" fullWidth sx={{ mt: 2, bgcolor: "#00c6ff" }} onClick={handleLogin}>
+            Log in
+          </Button>
+        ) : (
+          <Button variant="contained" fullWidth sx={{ mt: 2, bgcolor: "#f7971e" }} onClick={handleSignUp}>
+            Sign Up
+          </Button>
+        )}
+
+        <Typography variant="body2" align="center" sx={{ mt: 3, mb: 1 }}>
+          Or log in with
+        </Typography>
+
+        <Box sx={{ display: "flex", gap: 2 }}>
+          <Button
+            fullWidth
+            variant="contained"
+            startIcon={<GoogleIcon />}
+            sx={{ bgcolor: "#db4437", color: "#fff", "&:hover": { bgcolor: "#c23321" } }}
           >
-            <Tab icon={<ChatBubbleOutlineIcon />} label="Chat" />
-            <Tab icon={<DashboardIcon />} label="Dashboard" />
-            <Tab icon={<NotificationsIcon />} label="Notifications" />
-            <Tab icon={<SettingsIcon />} label="Settings" />
-          </Tabs>
+            Google
+          </Button>
+          <Button
+            fullWidth
+            variant="contained"
+            startIcon={<FacebookIcon />}
+            sx={{ bgcolor: "#4267B2", color: "#fff", "&:hover": { bgcolor: "#37559b" } }}
+          >
+            Facebook
+          </Button>
         </Box>
+      </Paper>
+    </Box>
+  );
+}
+
 
         {dashboardTab === 0 && (
           <Container maxWidth="sm" style={{ marginTop: "2rem", height: "80vh" }}>
